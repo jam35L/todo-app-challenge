@@ -1,0 +1,19 @@
+# ---- .NET ----
+[Bb]in/
+[Oo]bj/
+*.user
+.vs/
+
+# ---- Node / Angular ----
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+
+# ---- Misc / OS / editors ----
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/*
+!.vscode/extensions.json

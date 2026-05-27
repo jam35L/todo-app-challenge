@@ -135,7 +135,7 @@ Base path: `/api/todos`. All responses are JSON; errors use `application/problem
 - *Integration* — `WebApplicationFactory` exercising the real HTTP pipeline: each endpoint's
   happy path plus the 400/404 cases and the `X-User-Id` partitioning.
 
-**Frontend (Jasmine/Karma — Angular CLI default):**
+**Frontend (Vitest — the Angular CLI default test runner as of v21):**
 - `TodoService` against `HttpTestingController`: correct verbs/URLs/headers and response mapping.
 - Component tests: rendering of list/empty/error states, add-form validation, and that
   add/delete actions invoke the service.
@@ -143,7 +143,7 @@ Base path: `/api/todos`. All responses are JSON; errors use `application/problem
 ## 9. Repository Layout & Running
 
 ```
-todo-app-challege/
+todo-app-challenge/
 ├─ README.md            # prerequisites, install, run, test  (the canonical run guide)
 ├─ docs/PRD.md          # this document
 ├─ backend/             # .NET Web API solution (+ test project)
