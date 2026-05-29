@@ -56,6 +56,44 @@ public class TodosEndpointsTests(WebApplicationFactory<Program> factory)
     }
 
     [Fact]
+    public async Task Post_echoes_the_description_when_provided()
+    {
+        var client = CreateClientForNewUser();
+
+        var response = await client.PostAsJsonAsync(
+            "/api/todos",
+            new { title = "buy milk", description = "from the corner shop" });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<TodoResponse>();
+        Assert.Equal("from the corner shop", created!.Description);
+    }
+
+    [Fact]
+    public async Task Post_without_a_description_succeeds_with_null_description()
+    {
+        var client = CreateClientForNewUser();
+
+        var response = await client.PostAsJsonAsync("/api/todos", new { title = "buy milk" });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<TodoResponse>();
+        Assert.Null(created!.Description);
+    }
+
+    [Fact]
+    public async Task Post_with_a_too_long_description_returns_400()
+    {
+        var client = CreateClientForNewUser();
+
+        var response = await client.PostAsJsonAsync(
+            "/api/todos",
+            new { title = "buy milk", description = new string('a', 201) });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Post_with_an_empty_title_returns_400()
     {
         var client = CreateClientForNewUser();

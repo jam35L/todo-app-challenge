@@ -1,28 +1,37 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AddTodoForm } from './add-todo-form';
+import { AddTodoForm, NewTodo } from './add-todo-form';
 
 describe('AddTodoForm', () => {
   let fixture: ComponentFixture<AddTodoForm>;
-  let emitted: string[];
+  let emitted: NewTodo[];
 
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [AddTodoForm] });
     fixture = TestBed.createComponent(AddTodoForm);
     emitted = [];
-    fixture.componentInstance.add.subscribe((title) => emitted.push(title));
+    fixture.componentInstance.add.subscribe((todo) => emitted.push(todo));
     fixture.detectChanges();
   });
 
   const input = () => fixture.nativeElement.querySelector('input') as HTMLInputElement;
+  const description = () =>
+    fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
   const submitButton = () =>
     fixture.nativeElement.querySelector('.add-form__submit') as HTMLButtonElement;
 
-  function type(value: string) {
-    const el = input();
+  function setValue(el: HTMLInputElement | HTMLTextAreaElement, value: string) {
     el.value = value;
     el.dispatchEvent(new Event('input'));
     fixture.detectChanges();
+  }
+
+  function type(value: string) {
+    setValue(input(), value);
+  }
+
+  function typeDescription(value: string) {
+    setValue(description(), value);
   }
 
   function submit() {
@@ -36,14 +45,16 @@ describe('AddTodoForm', () => {
     submit();
   }
 
-  it('emits the entered title on submit', () => {
+  it('emits the entered title with an empty description on submit', () => {
     typeAndSubmit('buy milk');
-    expect(emitted).toEqual(['buy milk']);
+    expect(emitted).toEqual([{ title: 'buy milk', description: '' }]);
   });
 
-  it('trims surrounding whitespace before emitting', () => {
-    typeAndSubmit('  buy milk  ');
-    expect(emitted).toEqual(['buy milk']);
+  it('emits the trimmed title and description', () => {
+    type('  buy milk  ');
+    typeDescription('  from the corner shop  ');
+    submit();
+    expect(emitted).toEqual([{ title: 'buy milk', description: 'from the corner shop' }]);
   });
 
   it('does not emit for an empty title', () => {

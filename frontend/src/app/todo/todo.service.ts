@@ -15,8 +15,8 @@ export class TodoService {
     return this.http.get<Todo[]>(this.todosUrl);
   }
 
-  add(title: string): Observable<Todo> {
-    return this.http.post<Todo>(this.todosUrl, { title });
+  add(title: string, description: string): Observable<Todo> {
+    return this.http.post<Todo>(this.todosUrl, { title, description });
   }
 
   remove(id: string): Observable<void> {

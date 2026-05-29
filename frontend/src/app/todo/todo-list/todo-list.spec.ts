@@ -50,8 +50,8 @@ describe('TodoList', () => {
 
   it('loads and renders todos on init', () => {
     init([
-      { id: '1', title: 'first task', createdAtUtc: '2026-01-01T00:00:00Z' },
-      { id: '2', title: 'second task', createdAtUtc: '2026-01-02T00:00:00Z' },
+      { id: '1', title: 'first task', description: null, createdAtUtc: '2026-01-01T00:00:00Z' },
+      { id: '2', title: 'second task', description: null, createdAtUtc: '2026-01-02T00:00:00Z' },
     ]);
 
     expect(text()).toContain('first task');
@@ -70,8 +70,8 @@ describe('TodoList', () => {
 
     const req = httpMock.expectOne(todosUrl);
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ title: 'new task' });
-    req.flush({ id: '9', title: 'new task', createdAtUtc: '2026-01-03T00:00:00Z' });
+    expect(req.request.body).toEqual({ title: 'new task', description: '' });
+    req.flush({ id: '9', title: 'new task', description: null, createdAtUtc: '2026-01-03T00:00:00Z' });
     fixture.detectChanges();
 
     expect(text()).toContain('new task');
@@ -83,7 +83,7 @@ describe('TodoList', () => {
     submitNewTitle('new task');
     httpMock
       .expectOne(todosUrl)
-      .flush({ id: '9', title: 'new task', createdAtUtc: '2026-01-03T00:00:00Z' });
+      .flush({ id: '9', title: 'new task', description: null, createdAtUtc: '2026-01-03T00:00:00Z' });
     fixture.detectChanges();
 
     expect(input().value).toBe('');
@@ -112,11 +112,11 @@ describe('TodoList', () => {
 
     httpMock
       .expectOne(todosUrl)
-      .flush({ id: '9', title: 'new task', createdAtUtc: '2026-01-03T00:00:00Z' });
+      .flush({ id: '9', title: 'new task', description: null, createdAtUtc: '2026-01-03T00:00:00Z' });
   });
 
   it('deletes a todo when its delete button is clicked', () => {
-    init([{ id: '1', title: 'doomed task', createdAtUtc: '2026-01-01T00:00:00Z' }]);
+    init([{ id: '1', title: 'doomed task', description: null, createdAtUtc: '2026-01-01T00:00:00Z' }]);
 
     const deleteButton = fixture.nativeElement.querySelector(
       '.todo-item__delete',

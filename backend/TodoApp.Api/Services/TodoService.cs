@@ -7,13 +7,14 @@ namespace TodoApp.Api.Services;
 public sealed class TodoService(ITodoRepository repository, TimeProvider timeProvider) : ITodoService
 {
     public const int MaxTitleLength = 200;
+    public const int MaxDescriptionLength = 200;
 
     public IReadOnlyList<TodoItem> GetTodos(string userId) =>
         repository.GetAll(userId)
             .OrderByDescending(item => item.CreatedAtUtc)
             .ToList();
 
-    public TodoItem AddTodo(string userId, string? title)
+    public TodoItem AddTodo(string userId, string? title, string? description)
     {
         var trimmed = (title ?? string.Empty).Trim();
         if (trimmed.Length == 0)
@@ -26,10 +27,22 @@ public sealed class TodoService(ITodoRepository repository, TimeProvider timePro
             throw new ValidationException($"Title must be {MaxTitleLength} characters or fewer.");
         }
 
+        // Description is optional: blank/whitespace becomes null; otherwise it is length-checked.
+        var trimmedDescription = description?.Trim();
+        if (string.IsNullOrEmpty(trimmedDescription))
+        {
+            trimmedDescription = null;
+        }
+        else if (trimmedDescription.Length > MaxDescriptionLength)
+        {
+            throw new ValidationException($"Description must be {MaxDescriptionLength} characters or fewer.");
+        }
+
         var item = new TodoItem
         {
             Id = Guid.NewGuid(),
             Title = trimmed,
+            Description = trimmedDescription,
             CreatedAtUtc = timeProvider.GetUtcNow(),
         };
         repository.Add(userId, item);
