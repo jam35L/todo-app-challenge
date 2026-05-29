@@ -124,6 +124,73 @@ public class TodoServiceTests
     }
 
     [Fact]
+    public void UpdateTodo_changes_title_and_description_and_preserves_id_and_created_at()
+    {
+        var clock = new MutableClock(DateTimeOffset.Parse("2026-01-01T00:00:00Z"));
+        var service = CreateService(clock);
+        var created = service.AddTodo("user-1", "before", "old notes");
+        clock.Advance(TimeSpan.FromHours(1));
+
+        var updated = service.UpdateTodo("user-1", created.Id, "  after  ", "  new notes  ");
+
+        Assert.NotNull(updated);
+        Assert.Equal(created.Id, updated!.Id);
+        Assert.Equal("after", updated.Title);
+        Assert.Equal("new notes", updated.Description);
+        Assert.Equal(created.CreatedAtUtc, updated.CreatedAtUtc); // unchanged by the edit
+    }
+
+    [Fact]
+    public void UpdateTodo_clears_the_description_when_blank()
+    {
+        var service = CreateService();
+        var created = service.AddTodo("user-1", "task", "had notes");
+
+        var updated = service.UpdateTodo("user-1", created.Id, "task", "   ");
+
+        Assert.Null(updated!.Description);
+    }
+
+    [Fact]
+    public void UpdateTodo_returns_null_for_unknown_id()
+    {
+        var service = CreateService();
+
+        Assert.Null(service.UpdateTodo("user-1", Guid.NewGuid(), "title", null));
+    }
+
+    [Fact]
+    public void UpdateTodo_does_not_touch_another_users_item()
+    {
+        var service = CreateService();
+        var created = service.AddTodo("owner", "owned", null);
+
+        Assert.Null(service.UpdateTodo("intruder", created.Id, "hacked", null));
+        Assert.Equal("owned", service.GetTodos("owner").Single().Title);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void UpdateTodo_rejects_an_invalid_title(string title)
+    {
+        var service = CreateService();
+        var created = service.AddTodo("user-1", "valid", null);
+
+        Assert.Throws<ValidationException>(() => service.UpdateTodo("user-1", created.Id, title, null));
+    }
+
+    [Fact]
+    public void UpdateTodo_rejects_a_too_long_description()
+    {
+        var service = CreateService();
+        var created = service.AddTodo("user-1", "valid", null);
+        var tooLong = new string('a', TodoService.MaxDescriptionLength + 1);
+
+        Assert.Throws<ValidationException>(() => service.UpdateTodo("user-1", created.Id, "valid", tooLong));
+    }
+
+    [Fact]
     public void DeleteTodo_delegates_to_the_repository()
     {
         var service = CreateService();

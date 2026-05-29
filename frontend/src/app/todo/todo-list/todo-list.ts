@@ -9,22 +9,22 @@ import {
 
 import { Todo } from '../todo.model';
 import { TodoService } from '../todo.service';
-import { AddTodoForm, NewTodo } from '../add-todo-form/add-todo-form';
+import { NewTodo, TodoForm } from '../todo-form/todo-form';
 import { TodoItem } from '../todo-item/todo-item';
 
 /**
  * Smart container: owns the TODO list state (loading / error / items as signals),
- * loads on init, and wires the add/delete actions through to the API.
+ * loads on init, and wires the add/edit/delete actions through to the API.
  */
 @Component({
   selector: 'app-todo-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AddTodoForm, TodoItem],
+  imports: [TodoForm, TodoItem],
   template: `
     <section class="todo">
       <h1 class="todo__heading">My TODO list</h1>
 
-      <app-add-todo-form [disabled]="adding()" (add)="add($event)" />
+      <app-todo-form [disabled]="adding()" (save)="add($event)" />
 
       @if (error()) {
         <p class="todo__error" role="alert">{{ error() }}</p>
@@ -40,7 +40,15 @@ import { TodoItem } from '../todo-item/todo-item';
         <ul class="todo__list">
           @for (todo of todos(); track todo.id) {
             <li class="todo__list-item">
-              <app-todo-item [todo]="todo" (delete)="remove($event)" />
+              <app-todo-item
+                [todo]="todo"
+                [editing]="editingId() === todo.id"
+                [saving]="savingId() === todo.id"
+                (startEdit)="editingId.set(todo.id)"
+                (cancelEdit)="editingId.set(null)"
+                (save)="update(todo.id, $event)"
+                (delete)="remove($event)"
+              />
             </li>
           }
         </ul>
@@ -79,12 +87,16 @@ import { TodoItem } from '../todo-item/todo-item';
 })
 export class TodoList implements OnInit {
   private readonly todoService = inject(TodoService);
-  private readonly addForm = viewChild.required(AddTodoForm);
+  private readonly addForm = viewChild.required(TodoForm);
 
   protected readonly todos = signal<Todo[]>([]);
   protected readonly loading = signal(false);
   protected readonly adding = signal(false);
   protected readonly error = signal<string | null>(null);
+
+  /** Id of the todo currently being edited (null = none), and the one whose save is in flight. */
+  protected readonly editingId = signal<string | null>(null);
+  protected readonly savingId = signal<string | null>(null);
 
   ngOnInit(): void {
     this.load();
@@ -121,6 +133,27 @@ export class TodoList implements OnInit {
       error: () => {
         this.error.set('Could not add the task. Please try again.');
         this.adding.set(false);
+      },
+    });
+  }
+
+  protected update(id: string, { title, description }: NewTodo): void {
+    if (this.savingId()) {
+      return;
+    }
+
+    this.savingId.set(id);
+    this.error.set(null);
+    this.todoService.update(id, title, description).subscribe({
+      next: (updated) => {
+        this.todos.update((items) => items.map((t) => (t.id === id ? updated : t)));
+        this.editingId.set(null);
+        this.savingId.set(null);
+      },
+      error: () => {
+        // Leave the row in edit mode so the user's changes aren't lost.
+        this.error.set('Could not update the task. Please try again.');
+        this.savingId.set(null);
       },
     });
   }

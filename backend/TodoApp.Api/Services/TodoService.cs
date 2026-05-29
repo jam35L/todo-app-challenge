@@ -16,13 +16,55 @@ public sealed class TodoService(ITodoRepository repository, TimeProvider timePro
 
     public TodoItem AddTodo(string userId, string? title, string? description)
     {
-        var trimmed = (title ?? string.Empty).Trim();
-        if (trimmed.Length == 0)
+        var (trimmedTitle, trimmedDescription) = Normalize(title, description);
+        var item = new TodoItem
+        {
+            Id = Guid.NewGuid(),
+            Title = trimmedTitle,
+            Description = trimmedDescription,
+            CreatedAtUtc = timeProvider.GetUtcNow(),
+        };
+        repository.Add(userId, item);
+        return item;
+    }
+
+    public TodoItem? UpdateTodo(string userId, Guid id, string? title, string? description)
+    {
+        // Validate first so bad input is a 400 regardless of whether the id exists.
+        var (trimmedTitle, trimmedDescription) = Normalize(title, description);
+
+        var existing = repository.Find(userId, id);
+        if (existing is null)
+        {
+            return null;
+        }
+
+        var updated = new TodoItem
+        {
+            Id = existing.Id,
+            Title = trimmedTitle,
+            Description = trimmedDescription,
+            CreatedAtUtc = existing.CreatedAtUtc, // creation time is immutable
+        };
+        repository.Update(userId, updated);
+        return updated;
+    }
+
+    public bool DeleteTodo(string userId, Guid id) => repository.Delete(userId, id);
+
+    /// <summary>
+    /// Trims and validates the title (required, max length) and the optional description
+    /// (blank becomes null, otherwise max length). Throws <see cref="ValidationException"/>.
+    /// </summary>
+    private static (string Title, string? Description) Normalize(string? title, string? description)
+    {
+        var trimmedTitle = (title ?? string.Empty).Trim();
+        if (trimmedTitle.Length == 0)
         {
             throw new ValidationException("Title is required.");
         }
 
-        if (trimmed.Length > MaxTitleLength)
+        if (trimmedTitle.Length > MaxTitleLength)
         {
             throw new ValidationException($"Title must be {MaxTitleLength} characters or fewer.");
         }
@@ -38,16 +80,6 @@ public sealed class TodoService(ITodoRepository repository, TimeProvider timePro
             throw new ValidationException($"Description must be {MaxDescriptionLength} characters or fewer.");
         }
 
-        var item = new TodoItem
-        {
-            Id = Guid.NewGuid(),
-            Title = trimmed,
-            Description = trimmedDescription,
-            CreatedAtUtc = timeProvider.GetUtcNow(),
-        };
-        repository.Add(userId, item);
-        return item;
+        return (trimmedTitle, trimmedDescription);
     }
-
-    public bool DeleteTodo(string userId, Guid id) => repository.Delete(userId, id);
 }

@@ -33,6 +33,16 @@ public sealed class TodosController(ITodoService todoService) : ControllerBase
         return Created($"/api/todos/{created.Id}", response);
     }
 
+    [HttpPut("{id:guid}")]
+    public ActionResult<TodoResponse> Update(
+        [FromHeader(Name = UserIdHeaderName)][Required] string userId,
+        Guid id,
+        [FromBody] CreateTodoRequest request)
+    {
+        var updated = todoService.UpdateTodo(userId, id, request.Title, request.Description);
+        return updated is null ? NotFound() : Ok(TodoResponse.From(updated));
+    }
+
     [HttpDelete("{id:guid}")]
     public IActionResult Delete(
         [FromHeader(Name = UserIdHeaderName)][Required] string userId,

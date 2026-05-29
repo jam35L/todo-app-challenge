@@ -95,6 +95,7 @@ Omit `-- --watch=false` to run the Vitest suite in watch mode during development
 |--------|-------|------|---------|--------|
 | GET    | `/api/todos` | — | `200` `Todo[]` (newest first) | — |
 | POST   | `/api/todos` | `{ "title": "...", "description": "..." }` (description optional) | `201` + `Todo`, `Location` header | `400` invalid title/description |
+| PUT    | `/api/todos/{id}` | `{ "title": "...", "description": "..." }` (description optional; omit to clear) | `200` + updated `Todo` | `400` invalid, `404` unknown id |
 | DELETE | `/api/todos/{id}` | — | `204` | `404` unknown id |
 
 All requests require an `X-User-Id` header (a missing header returns `400`).

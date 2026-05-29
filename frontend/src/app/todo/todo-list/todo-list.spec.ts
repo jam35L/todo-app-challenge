@@ -30,7 +30,21 @@ describe('TodoList', () => {
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
   const input = () => fixture.nativeElement.querySelector('input') as HTMLInputElement;
   const submitButton = () =>
-    fixture.nativeElement.querySelector('.add-form__submit') as HTMLButtonElement;
+    fixture.nativeElement.querySelector('.todo-form__submit') as HTMLButtonElement;
+
+  /** Enters edit mode on the first item, sets a new title, and submits the inline form. */
+  function editFirstItem(newTitle: string) {
+    (fixture.nativeElement.querySelector('.todo-item__edit') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    const editInput = fixture.nativeElement.querySelector('.todo__list input') as HTMLInputElement;
+    editInput.value = newTitle;
+    editInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.todo__list form') as HTMLFormElement).dispatchEvent(
+      new Event('submit'),
+    );
+    fixture.detectChanges();
+  }
 
   /** Runs ngOnInit (which triggers the initial load) and flushes the response. */
   function init(todos: Todo[]) {
@@ -129,6 +143,38 @@ describe('TodoList', () => {
     fixture.detectChanges();
 
     expect(text()).not.toContain('doomed task');
+  });
+
+  it('edits a todo inline and saves the changes', () => {
+    init([{ id: '1', title: 'old title', description: null, createdAtUtc: '2026-01-01T00:00:00Z' }]);
+
+    editFirstItem('new title');
+
+    const req = httpMock.expectOne(`${todosUrl}/1`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ title: 'new title' });
+    req.flush({ id: '1', title: 'new title', description: null, createdAtUtc: '2026-01-01T00:00:00Z' });
+    fixture.detectChanges();
+
+    expect(text()).toContain('new title');
+    // The inline form is gone — the row returned to its read-only view.
+    expect(fixture.nativeElement.querySelector('.todo__list form')).toBeNull();
+  });
+
+  it('keeps the row in edit mode and shows an error when the update fails', () => {
+    init([{ id: '1', title: 'old title', description: null, createdAtUtc: '2026-01-01T00:00:00Z' }]);
+
+    editFirstItem('new title');
+    httpMock
+      .expectOne(`${todosUrl}/1`)
+      .flush('boom', { status: 500, statusText: 'Server Error' });
+    fixture.detectChanges();
+
+    // Still editing, user's text preserved, error shown.
+    const editInput = fixture.nativeElement.querySelector('.todo__list input') as HTMLInputElement;
+    expect(editInput).not.toBeNull();
+    expect(editInput.value).toBe('new title');
+    expect(text()).toContain('Could not update');
   });
 
   it('shows an error message when loading fails', () => {

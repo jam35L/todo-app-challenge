@@ -126,6 +126,65 @@ public class TodosEndpointsTests(WebApplicationFactory<Program> factory)
     }
 
     [Fact]
+    public async Task Put_updates_title_and_description_and_preserves_created_at()
+    {
+        var client = CreateClientForNewUser();
+        var created = await (await client.PostAsJsonAsync(
+                "/api/todos",
+                new { title = "before", description = "old" }))
+            .Content.ReadFromJsonAsync<TodoResponse>();
+
+        var response = await client.PutAsJsonAsync(
+            $"/api/todos/{created!.Id}",
+            new { title = "after", description = "new" });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var updated = await response.Content.ReadFromJsonAsync<TodoResponse>();
+        Assert.Equal(created.Id, updated!.Id);
+        Assert.Equal("after", updated.Title);
+        Assert.Equal("new", updated.Description);
+        Assert.Equal(created.CreatedAtUtc, updated.CreatedAtUtc);
+    }
+
+    [Fact]
+    public async Task Put_without_a_description_clears_it()
+    {
+        var client = CreateClientForNewUser();
+        var created = await (await client.PostAsJsonAsync(
+                "/api/todos",
+                new { title = "task", description = "had notes" }))
+            .Content.ReadFromJsonAsync<TodoResponse>();
+
+        var response = await client.PutAsJsonAsync($"/api/todos/{created!.Id}", new { title = "task" });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var updated = await response.Content.ReadFromJsonAsync<TodoResponse>();
+        Assert.Null(updated!.Description);
+    }
+
+    [Fact]
+    public async Task Put_with_an_invalid_title_returns_400()
+    {
+        var client = CreateClientForNewUser();
+        var created = await (await client.PostAsJsonAsync("/api/todos", new { title = "valid" }))
+            .Content.ReadFromJsonAsync<TodoResponse>();
+
+        var response = await client.PutAsJsonAsync($"/api/todos/{created!.Id}", new { title = "" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Put_with_an_unknown_id_returns_404()
+    {
+        var client = CreateClientForNewUser();
+
+        var response = await client.PutAsJsonAsync($"/api/todos/{Guid.NewGuid()}", new { title = "x" });
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Delete_removes_an_existing_todo_and_returns_204()
     {
         var client = CreateClientForNewUser();

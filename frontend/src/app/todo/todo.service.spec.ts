@@ -68,6 +68,34 @@ describe('TodoService', () => {
     req.flush({ id: '3', title: 'buy milk', description: null, createdAtUtc: '2026-01-01T00:00:00Z' });
   });
 
+  it('update() PUTs the title and description to /todos/{id}', () => {
+    const updated: Todo = {
+      id: '2',
+      title: 'new title',
+      description: 'new notes',
+      createdAtUtc: '2026-01-01T00:00:00Z',
+    };
+    let result: Todo | undefined;
+
+    service.update('2', 'new title', 'new notes').subscribe((r) => (result = r));
+
+    const req = httpMock.expectOne(`${todosUrl}/2`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ title: 'new title', description: 'new notes' });
+    req.flush(updated);
+
+    expect(result).toEqual(updated);
+  });
+
+  it('update() omits the description from the body when it is blank (clears it)', () => {
+    service.update('2', 'new title', '').subscribe();
+
+    const req = httpMock.expectOne(`${todosUrl}/2`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ title: 'new title' });
+    req.flush({ id: '2', title: 'new title', description: null, createdAtUtc: '2026-01-01T00:00:00Z' });
+  });
+
   it('remove() issues a DELETE to /todos/{id}', () => {
     let completed = false;
 
