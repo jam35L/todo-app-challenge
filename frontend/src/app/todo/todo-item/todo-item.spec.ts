@@ -7,7 +7,7 @@ describe('TodoItem', () => {
   const todo: Todo = {
     id: '1',
     title: 'buy milk',
-    createdAt: '2026-01-01T00:00:00Z',
+    createdAtUtc: '2026-01-01T00:00:00Z',
   };
 
   beforeEach(() => {

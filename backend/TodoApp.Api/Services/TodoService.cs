@@ -10,7 +10,7 @@ public sealed class TodoService(ITodoRepository repository, TimeProvider timePro
 
     public IReadOnlyList<TodoItem> GetTodos(string userId) =>
         repository.GetAll(userId)
-            .OrderByDescending(item => item.CreatedAt)
+            .OrderByDescending(item => item.CreatedAtUtc)
             .ToList();
 
     public TodoItem AddTodo(string userId, string? title)
@@ -30,7 +30,7 @@ public sealed class TodoService(ITodoRepository repository, TimeProvider timePro
         {
             Id = Guid.NewGuid(),
             Title = trimmed,
-            CreatedAt = timeProvider.GetUtcNow(),
+            CreatedAtUtc = timeProvider.GetUtcNow(),
         };
         repository.Add(userId, item);
         return item;

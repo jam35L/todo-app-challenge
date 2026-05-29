@@ -2,6 +2,6 @@
 export interface Todo {
   id: string;
   title: string;
-  /** ISO-8601 timestamp of when the item was created. */
-  createdAt: string;
+  /** ISO-8601 UTC timestamp of when the item was created. */
+  createdAtUtc: string;
 }

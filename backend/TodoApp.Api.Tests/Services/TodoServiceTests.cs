@@ -19,7 +19,7 @@ public class TodoServiceTests
 
         Assert.NotEqual(Guid.Empty, created.Id);
         Assert.Equal("buy milk", created.Title);
-        Assert.Equal(clock.GetUtcNow(), created.CreatedAt);
+        Assert.Equal(clock.GetUtcNow(), created.CreatedAtUtc);
         Assert.Single(service.GetTodos("user-1"));
     }
 
