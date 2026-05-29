@@ -15,9 +15,11 @@ describe('TodoItem', () => {
     TestBed.configureTestingModule({ imports: [TodoItem] });
   });
 
-  function render(overrides: Partial<Todo> = {}) {
+  function render(inputs: { todo?: Partial<Todo>; editing?: boolean; saving?: boolean } = {}) {
     const fixture = TestBed.createComponent(TodoItem);
-    fixture.componentRef.setInput('todo', { ...todo, ...overrides });
+    fixture.componentRef.setInput('todo', { ...todo, ...inputs.todo });
+    if (inputs.editing !== undefined) fixture.componentRef.setInput('editing', inputs.editing);
+    if (inputs.saving !== undefined) fixture.componentRef.setInput('saving', inputs.saving);
     fixture.detectChanges();
     return fixture;
   }
@@ -28,13 +30,14 @@ describe('TodoItem', () => {
   });
 
   it('renders the description when present', () => {
-    const el = render({ description: 'from the corner shop' }).nativeElement as HTMLElement;
+    const el = render({ todo: { description: 'from the corner shop' } })
+      .nativeElement as HTMLElement;
     const desc = el.querySelector('.todo-item__description');
     expect(desc?.textContent).toContain('from the corner shop');
   });
 
   it('does not render a description element when there is none', () => {
-    const el = render({ description: null }).nativeElement as HTMLElement;
+    const el = render({ todo: { description: null } }).nativeElement as HTMLElement;
     expect(el.querySelector('.todo-item__description')).toBeNull();
   });
 
@@ -49,9 +52,63 @@ describe('TodoItem', () => {
     let emitted: string | undefined;
     fixture.componentInstance.delete.subscribe((id) => (emitted = id));
 
-    const button = (fixture.nativeElement as HTMLElement).querySelector('button');
-    button!.click();
+    const button = (fixture.nativeElement as HTMLElement).querySelector('.todo-item__delete');
+    (button as HTMLButtonElement).click();
 
     expect(emitted).toBe('1');
+  });
+
+  it('emits startEdit when the edit button is clicked', () => {
+    const fixture = render();
+    let started = false;
+    fixture.componentInstance.startEdit.subscribe(() => (started = true));
+
+    const edit = (fixture.nativeElement as HTMLElement).querySelector('.todo-item__edit');
+    (edit as HTMLButtonElement).click();
+
+    expect(started).toBe(true);
+  });
+
+  it('shows the edit form pre-filled when editing', () => {
+    const el = render({ todo: { title: 'buy milk', description: 'notes' }, editing: true })
+      .nativeElement as HTMLElement;
+
+    expect(el.querySelector('app-todo-form')).not.toBeNull();
+    expect((el.querySelector('input') as HTMLInputElement).value).toBe('buy milk');
+    expect((el.querySelector('textarea') as HTMLTextAreaElement).value).toBe('notes');
+    // The read-only view is replaced by the form.
+    expect(el.querySelector('.todo-item__delete')).toBeNull();
+  });
+
+  it('re-emits save with the edited values', () => {
+    const fixture = render({ editing: true });
+    let saved: { title: string; description: string } | undefined;
+    fixture.componentInstance.save.subscribe((v) => (saved = v));
+
+    const el = fixture.nativeElement as HTMLElement;
+    const input = el.querySelector('input') as HTMLInputElement;
+    input.value = 'updated';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    (el.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit'));
+
+    expect(saved).toEqual({ title: 'updated', description: '' });
+  });
+
+  it('emits cancelEdit when the form is cancelled', () => {
+    const fixture = render({ editing: true });
+    let cancelled = false;
+    fixture.componentInstance.cancelEdit.subscribe(() => (cancelled = true));
+
+    const cancel = (fixture.nativeElement as HTMLElement).querySelector('.todo-form__cancel');
+    (cancel as HTMLButtonElement).click();
+
+    expect(cancelled).toBe(true);
+  });
+
+  it('disables the edit form submit while saving', () => {
+    const el = render({ editing: true, saving: true }).nativeElement as HTMLElement;
+    const submit = el.querySelector('.todo-form__submit') as HTMLButtonElement;
+    expect(submit.disabled).toBe(true);
   });
 });

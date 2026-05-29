@@ -16,12 +16,19 @@ export class TodoService {
   }
 
   add(title: string, description: string): Observable<Todo> {
-    // Omit the optional description entirely when blank, matching the documented contract.
-    const body = description ? { title, description } : { title };
-    return this.http.post<Todo>(this.todosUrl, body);
+    return this.http.post<Todo>(this.todosUrl, this.body(title, description));
+  }
+
+  update(id: string, title: string, description: string): Observable<Todo> {
+    return this.http.put<Todo>(`${this.todosUrl}/${id}`, this.body(title, description));
   }
 
   remove(id: string): Observable<void> {
     return this.http.delete<void>(`${this.todosUrl}/${id}`);
+  }
+
+  /** Omit the optional description entirely when blank, matching the documented contract. */
+  private body(title: string, description: string): { title: string; description?: string } {
+    return description ? { title, description } : { title };
   }
 }

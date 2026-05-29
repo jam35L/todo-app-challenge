@@ -17,10 +17,27 @@ public sealed class InMemoryTodoRepository : ITodoRepository
             ? items.Values.ToList()
             : [];
 
+    public TodoItem? Find(string userId, Guid id) =>
+        _byUser.TryGetValue(userId, out var items) && items.TryGetValue(id, out var item)
+            ? item
+            : null;
+
     public void Add(string userId, TodoItem item)
     {
         var items = _byUser.GetOrAdd(userId, _ => new ConcurrentDictionary<Guid, TodoItem>());
         items[item.Id] = item;
+    }
+
+    public bool Update(string userId, TodoItem item)
+    {
+        // Replace only if the id already exists, so this never resurrects a deleted item.
+        if (_byUser.TryGetValue(userId, out var items) && items.ContainsKey(item.Id))
+        {
+            items[item.Id] = item;
+            return true;
+        }
+
+        return false;
     }
 
     public bool Delete(string userId, Guid id) =>
