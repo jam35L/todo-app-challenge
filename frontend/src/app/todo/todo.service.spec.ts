@@ -60,6 +60,14 @@ describe('TodoService', () => {
     expect(result).toEqual(created);
   });
 
+  it('add() omits the description from the body when it is blank', () => {
+    service.add('buy milk', '').subscribe();
+
+    const req = httpMock.expectOne(todosUrl);
+    expect(req.request.body).toEqual({ title: 'buy milk' });
+    req.flush({ id: '3', title: 'buy milk', description: null, createdAtUtc: '2026-01-01T00:00:00Z' });
+  });
+
   it('remove() issues a DELETE to /todos/{id}', () => {
     let completed = false;
 

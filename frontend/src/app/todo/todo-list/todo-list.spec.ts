@@ -70,7 +70,7 @@ describe('TodoList', () => {
 
     const req = httpMock.expectOne(todosUrl);
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ title: 'new task', description: '' });
+    expect(req.request.body).toEqual({ title: 'new task' });
     req.flush({ id: '9', title: 'new task', description: null, createdAtUtc: '2026-01-03T00:00:00Z' });
     fixture.detectChanges();
 
