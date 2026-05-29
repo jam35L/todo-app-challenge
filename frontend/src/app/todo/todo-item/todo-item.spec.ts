@@ -26,6 +26,12 @@ describe('TodoItem', () => {
     expect(el.textContent).toContain('buy milk');
   });
 
+  it('renders the created time with seconds', () => {
+    const time = (render().nativeElement as HTMLElement).querySelector('time');
+    // h:mm:ss — the source timestamp has zero seconds, so any timezone shows :00
+    expect(time!.textContent).toMatch(/\d{1,2}:\d{2}:\d{2}/);
+  });
+
   it('emits delete with the todo id when the delete button is clicked', () => {
     const fixture = render();
     let emitted: string | undefined;

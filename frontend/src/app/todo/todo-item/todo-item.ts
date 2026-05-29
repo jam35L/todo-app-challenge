@@ -13,7 +13,7 @@ import { Todo } from '../todo.model';
       <div class="todo-item__text">
         <span class="todo-item__title">{{ todo().title }}</span>
         <time class="todo-item__date" [attr.datetime]="todo().createdAtUtc">
-          {{ todo().createdAtUtc | date: 'short' }}
+          {{ todo().createdAtUtc | date: 'M/d/yy, h:mm:ss a' }}
         </time>
       </div>
       <button
