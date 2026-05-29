@@ -9,7 +9,7 @@ public class InMemoryTodoRepositoryTests
     {
         Id = Guid.NewGuid(),
         Title = title,
-        CreatedAt = DateTimeOffset.UtcNow,
+        CreatedAtUtc = DateTimeOffset.UtcNow,
     };
 
     [Fact]

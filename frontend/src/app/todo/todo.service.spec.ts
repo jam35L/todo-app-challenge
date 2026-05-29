@@ -28,7 +28,7 @@ describe('TodoService', () => {
 
   it('list() issues a GET to /todos and returns the items', () => {
     const todos: Todo[] = [
-      { id: '1', title: 'first', createdAt: '2026-01-01T00:00:00Z' },
+      { id: '1', title: 'first', createdAtUtc: '2026-01-01T00:00:00Z' },
     ];
     let result: Todo[] | undefined;
 
@@ -45,7 +45,7 @@ describe('TodoService', () => {
     const created: Todo = {
       id: '2',
       title: 'buy milk',
-      createdAt: '2026-01-01T00:00:00Z',
+      createdAtUtc: '2026-01-01T00:00:00Z',
     };
     let result: Todo | undefined;
 

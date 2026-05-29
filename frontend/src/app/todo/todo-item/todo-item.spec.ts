@@ -7,7 +7,7 @@ describe('TodoItem', () => {
   const todo: Todo = {
     id: '1',
     title: 'buy milk',
-    createdAt: '2026-01-01T00:00:00Z',
+    createdAtUtc: '2026-01-01T00:00:00Z',
   };
 
   beforeEach(() => {
@@ -24,6 +24,12 @@ describe('TodoItem', () => {
   it('renders the todo title', () => {
     const el = render().nativeElement as HTMLElement;
     expect(el.textContent).toContain('buy milk');
+  });
+
+  it('renders the created time with seconds', () => {
+    const time = (render().nativeElement as HTMLElement).querySelector('time');
+    // h:mm:ss — the source timestamp has zero seconds, so any timezone shows :00
+    expect(time!.textContent).toMatch(/\d{1,2}:\d{2}:\d{2}/);
   });
 
   it('emits delete with the todo id when the delete button is clicked', () => {
