@@ -28,7 +28,7 @@ describe('TodoService', () => {
 
   it('list() issues a GET to /todos and returns the items', () => {
     const todos: Todo[] = [
-      { id: '1', title: 'first', createdAtUtc: '2026-01-01T00:00:00Z' },
+      { id: '1', title: 'first', description: null, createdAtUtc: '2026-01-01T00:00:00Z' },
     ];
     let result: Todo[] | undefined;
 
@@ -41,22 +41,31 @@ describe('TodoService', () => {
     expect(result).toEqual(todos);
   });
 
-  it('add() POSTs the title and returns the created item', () => {
+  it('add() POSTs the title and description and returns the created item', () => {
     const created: Todo = {
       id: '2',
       title: 'buy milk',
+      description: 'from the corner shop',
       createdAtUtc: '2026-01-01T00:00:00Z',
     };
     let result: Todo | undefined;
 
-    service.add('buy milk').subscribe((r) => (result = r));
+    service.add('buy milk', 'from the corner shop').subscribe((r) => (result = r));
 
     const req = httpMock.expectOne(todosUrl);
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ title: 'buy milk' });
+    expect(req.request.body).toEqual({ title: 'buy milk', description: 'from the corner shop' });
     req.flush(created);
 
     expect(result).toEqual(created);
+  });
+
+  it('add() omits the description from the body when it is blank', () => {
+    service.add('buy milk', '').subscribe();
+
+    const req = httpMock.expectOne(todosUrl);
+    expect(req.request.body).toEqual({ title: 'buy milk' });
+    req.flush({ id: '3', title: 'buy milk', description: null, createdAtUtc: '2026-01-01T00:00:00Z' });
   });
 
   it('remove() issues a DELETE to /todos/{id}', () => {

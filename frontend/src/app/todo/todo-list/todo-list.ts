@@ -9,7 +9,7 @@ import {
 
 import { Todo } from '../todo.model';
 import { TodoService } from '../todo.service';
-import { AddTodoForm } from '../add-todo-form/add-todo-form';
+import { AddTodoForm, NewTodo } from '../add-todo-form/add-todo-form';
 import { TodoItem } from '../todo-item/todo-item';
 
 /**
@@ -105,14 +105,14 @@ export class TodoList implements OnInit {
     });
   }
 
-  protected add(title: string): void {
+  protected add({ title, description }: NewTodo): void {
     if (this.adding()) {
       return;
     }
 
     this.adding.set(true);
     this.error.set(null);
-    this.todoService.add(title).subscribe({
+    this.todoService.add(title, description).subscribe({
       next: (created) => {
         this.todos.update((items) => [created, ...items]);
         this.addForm().reset();

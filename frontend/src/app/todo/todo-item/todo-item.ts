@@ -12,6 +12,9 @@ import { Todo } from '../todo.model';
     <div class="todo-item">
       <div class="todo-item__text">
         <span class="todo-item__title">{{ todo().title }}</span>
+        @if (todo().description) {
+          <p class="todo-item__description">{{ todo().description }}</p>
+        }
         <time class="todo-item__date" [attr.datetime]="todo().createdAtUtc">
           {{ todo().createdAtUtc | date: 'M/d/yy, h:mm:ss a' }}
         </time>
@@ -44,6 +47,13 @@ import { Todo } from '../todo.model';
     }
     .todo-item__title {
       font-weight: 500;
+      word-break: break-word;
+    }
+    .todo-item__description {
+      margin: 0.15rem 0 0;
+      font-size: 0.85rem;
+      color: #555;
+      white-space: pre-wrap;
       word-break: break-word;
     }
     .todo-item__date {

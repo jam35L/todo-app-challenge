@@ -28,7 +28,7 @@ public sealed class TodosController(ITodoService todoService) : ControllerBase
         [FromHeader(Name = UserIdHeaderName)][Required] string userId,
         [FromBody] CreateTodoRequest request)
     {
-        var created = todoService.AddTodo(userId, request.Title);
+        var created = todoService.AddTodo(userId, request.Title, request.Description);
         var response = TodoResponse.From(created);
         return Created($"/api/todos/{created.Id}", response);
     }

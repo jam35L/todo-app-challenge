@@ -15,8 +15,10 @@ export class TodoService {
     return this.http.get<Todo[]>(this.todosUrl);
   }
 
-  add(title: string): Observable<Todo> {
-    return this.http.post<Todo>(this.todosUrl, { title });
+  add(title: string, description: string): Observable<Todo> {
+    // Omit the optional description entirely when blank, matching the documented contract.
+    const body = description ? { title, description } : { title };
+    return this.http.post<Todo>(this.todosUrl, body);
   }
 
   remove(id: string): Observable<void> {

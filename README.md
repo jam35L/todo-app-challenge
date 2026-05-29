@@ -81,8 +81,10 @@ Omit `-- --watch=false` to run the Vitest suite in watch mode during development
 - **No authentication.** Each browser generates a random id once, stores it in
   `localStorage`, and sends it on every request as an `X-User-Id` header. The backend keeps
   a separate list per id, so two browsers see independent lists.
-- **Validation** is enforced on the server (title required, max 200 chars) and surfaced as
-  RFC-7807 `application/problem+json` responses; the UI also disables submitting an empty title.
+- **Validation** is enforced on the server (title required, max 200 chars; the optional
+  description is also capped at 200 chars) and surfaced as RFC-7807
+  `application/problem+json` responses; the UI mirrors these rules with inline validation
+  messages and disables submitting an invalid title.
 - **Architecture.** The backend is layered `Controller → ITodoService → ITodoRepository`,
   with an in-memory repository behind the interface — swappable for a database with no
   changes to the controller or service.
@@ -92,7 +94,7 @@ Omit `-- --watch=false` to run the Vitest suite in watch mode during development
 | Method | Route | Body | Success | Errors |
 |--------|-------|------|---------|--------|
 | GET    | `/api/todos` | — | `200` `Todo[]` (newest first) | — |
-| POST   | `/api/todos` | `{ "title": "..." }` | `201` + `Todo`, `Location` header | `400` invalid title |
+| POST   | `/api/todos` | `{ "title": "...", "description": "..." }` (description optional) | `201` + `Todo`, `Location` header | `400` invalid title/description |
 | DELETE | `/api/todos/{id}` | — | `204` | `404` unknown id |
 
 All requests require an `X-User-Id` header (a missing header returns `400`).
