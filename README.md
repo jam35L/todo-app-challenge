@@ -83,7 +83,8 @@ Omit `-- --watch=false` to run the Vitest suite in watch mode during development
   a separate list per id, so two browsers see independent lists.
 - **Validation** is enforced on the server (title required, max 200 chars; the optional
   description is also capped at 200 chars) and surfaced as RFC-7807
-  `application/problem+json` responses; the UI also disables submitting an empty title.
+  `application/problem+json` responses; the UI mirrors these rules with inline validation
+  messages and disables submitting an invalid title.
 - **Architecture.** The backend is layered `Controller → ITodoService → ITodoRepository`,
   with an in-memory repository behind the interface — swappable for a database with no
   changes to the controller or service.

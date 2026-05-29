@@ -45,6 +45,17 @@ describe('AddTodoForm', () => {
     submit();
   }
 
+  /** Marks a control touched (errors only show once touched), as a real blur would. */
+  function blur(el: HTMLElement) {
+    el.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+  }
+
+  const errorText = () =>
+    Array.from(fixture.nativeElement.querySelectorAll('.add-form__error'))
+      .map((el) => (el as HTMLElement).textContent?.trim())
+      .join(' ');
+
   it('emits the entered title with an empty description on submit', () => {
     typeAndSubmit('buy milk');
     expect(emitted).toEqual([{ title: 'buy milk', description: '' }]);
@@ -60,6 +71,27 @@ describe('AddTodoForm', () => {
   it('does not emit for an empty title', () => {
     typeAndSubmit('');
     expect(emitted).toEqual([]);
+  });
+
+  it('shows no validation error before the user interacts', () => {
+    expect(fixture.nativeElement.querySelector('.add-form__error')).toBeNull();
+  });
+
+  it('shows a required error when the title is left blank', () => {
+    blur(input());
+    expect(errorText()).toContain('Title is required.');
+  });
+
+  it('shows a max-length error when the title exceeds the limit', () => {
+    type('a'.repeat(201));
+    blur(input());
+    expect(errorText()).toContain('Title must be 200 characters or fewer.');
+  });
+
+  it('shows a max-length error when the description exceeds the limit', () => {
+    typeDescription('a'.repeat(201));
+    blur(description());
+    expect(errorText()).toContain('Description must be 200 characters or fewer.');
   });
 
   it('does not emit for a whitespace-only title', () => {
